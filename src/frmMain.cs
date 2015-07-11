@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-//using System.ComponentModel;
-//using System.Data;
-//using System.Drawing;
 using System.IO;
-//using System.Linq;
-//using System.Text;
+using System.Net;
 using System.Windows.Forms;
 
 namespace Launcher
@@ -21,9 +17,9 @@ namespace Launcher
 
         private void btnCheckFolder_Click(object sender, EventArgs e)
         {
-            //TODO: check for subfolders
             List<String> folders = new List<String>();
-            string latestVersion = "0.5";
+            var latestVersion = new Version("0.0");
+
             foreach (string subFolderPath in Directory.GetDirectories(dirPath, "*", SearchOption.TopDirectoryOnly))
             {
                 Console.WriteLine(subFolderPath);
@@ -31,27 +27,49 @@ namespace Launcher
                 string subFolderName = Path.GetFileName(fullPath);
                 Console.WriteLine(subFolderName);
 
-                var version1 = new Version(latestVersion);
-                var version2 = new Version(subFolderName);
+                var subFolderVersion = new Version(subFolderName);
 
-                var result = version1.CompareTo(version2);
+                var result = latestVersion.CompareTo(subFolderVersion);
                 if (result > 0)
+                {
                     Console.WriteLine("latestVersion is greater");
+                }
                 else if (result < 0)
+                {
                     Console.WriteLine("subFolderName is greater");
+                    latestVersion = subFolderVersion;
+                }
                 else
+                {
                     Console.WriteLine("versions are equal");
+                }
             }
+            Console.WriteLine(latestVersion);
 
-            //TODO: if at least one folder is available, store version of local version
             //TODO: check online for latest version number
+            var onlineVersion = getOnlineVersion();
+
             //TODO: if online is newer, download
-            //TODO: else launch local app
+
+            //TODO: launch latest app
         }
 
         private void btnCheckOnline_Click(object sender, EventArgs e)
         {
+            getOnlineVersion();
         }
 
+        private Version getOnlineVersion()
+        {
+            //http://stackoverflow.com/questions/29695517/read-online-txt-file
+            //http://stackoverflow.com/questions/2471209/how-to-read-a-file-from-internet
+
+            var returnVersion = new Version("0.0");
+
+            var webClient = new WebClient();
+            string readHtml = webClient.DownloadString("your_file_path_url");
+
+            return returnVersion;
+        }
     }
 }

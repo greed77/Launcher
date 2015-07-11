@@ -22,17 +22,5 @@ namespace Launcher.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public string LocalVer {
-            get {
-                return ((string)(this["LocalVer"]));
-            }
-            set {
-                this["LocalVer"] = value;
-            }
-        }
     }
 }
