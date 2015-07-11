@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace Launcher
 {
     public partial class frmMain : Form
     {
         private String dirPath = Application.StartupPath;
+        private String updateUrlXml = "https://raw.githubusercontent.com/greed77/Launcher/master/AutoUpdate.xml";
+
+        public static string updateTitle = "";
+        public static string updateUrl = "";
+        public static Version updateVersion= new Version("0.0.0.0");
+        public static string updateChangelog = "";
+        public static string updateAction = "";
 
         public frmMain()
         {
@@ -66,8 +74,43 @@ namespace Launcher
 
             var returnVersion = new Version("0.0");
 
+            //////////////////////////////
+            try
+            {
+                XmlDocument xml = new XmlDocument();
+                xml.Load(updateUrlXml);
+
+                XmlNodeList items = xml.SelectNodes("/items/item");
+                foreach (XmlNode item in items)
+                {
+                    updateTitle = item["title"].InnerText;
+                    Console.WriteLine("title:" + updateTitle);
+
+                    updateVersion = new Version(item["version"].InnerText);
+                    Console.WriteLine("version:" + updateVersion);
+
+                    updateChangelog = item["changelog"].InnerText;
+                    Console.WriteLine("changelog:" + updateChangelog);
+
+                    updateUrl = item["url"].InnerText;
+                    Console.WriteLine("url:" + updateUrl);
+
+                    //self_update_action = xml.SelectSingleNode("/items/item/@action").Value;
+                    //Console.WriteLine("action:" + self_update_action);
+                }
+
+                //Version self_current_version = Assembly.GetCallingAssembly().GetName().Version;
+                //Debug.WriteLine(self_current_version.ToString());
+
+            }
+            catch (Exception level1)
+            {
+                Console.WriteLine(level1);
+            }
+            //////////////////////////////
+
             var webClient = new WebClient();
-            string readHtml = webClient.DownloadString("your_file_path_url");
+            string readHtml = webClient.DownloadString("https://raw.githubusercontent.com/greed77/Launcher/master/AutoUpdate.xml");
 
             return returnVersion;
         }
