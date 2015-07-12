@@ -28,6 +28,7 @@ namespace Launcher
         {
             List<String> folders = new List<String>();
             var latestVersion = new Version("0.0");
+            latestVersion = new Version(Math.Max(0, latestVersion.Major), Math.Max(0, latestVersion.Minor), Math.Max(0, latestVersion.Build), Math.Max(0, latestVersion.Revision));
 
             foreach (string subFolderPath in Directory.GetDirectories(dirPath, "*", SearchOption.TopDirectoryOnly))
             {
@@ -37,6 +38,7 @@ namespace Launcher
                 Console.WriteLine(subFolderName);
 
                 var subFolderVersion = new Version(subFolderName);
+                subFolderVersion = new Version(Math.Max(0, subFolderVersion.Major), Math.Max(0, subFolderVersion.Minor), Math.Max(0, subFolderVersion.Build), Math.Max(0, subFolderVersion.Revision));
 
                 var result = latestVersion.CompareTo(subFolderVersion);
                 if (result > 0)
@@ -55,7 +57,6 @@ namespace Launcher
             }
             Console.WriteLine(latestVersion);
 
-            //TODO: check online for latest version number
             var onlineVersion = getOnlineVersion();
 
             //TODO: if online is newer, download
@@ -70,10 +71,8 @@ namespace Launcher
 
         private Version getOnlineVersion()
         {
-            //http://stackoverflow.com/questions/29695517/read-online-txt-file
-            //http://stackoverflow.com/questions/2471209/how-to-read-a-file-from-internet
-
             var returnVersion = new Version("0.0");
+            returnVersion = new Version(Math.Max(0, returnVersion.Major), Math.Max(0, returnVersion.Minor), Math.Max(0, returnVersion.Build), Math.Max(0, returnVersion.Revision));
 
             //////////////////////////////
             try
@@ -88,6 +87,7 @@ namespace Launcher
                     Console.WriteLine("updateTitle:" + updateTitle);
 
                     updateVersion = new Version(item["version"].InnerText);
+                    updateVersion = new Version(Math.Max(0, updateVersion.Major), Math.Max(0, updateVersion.Minor), Math.Max(0, updateVersion.Build), Math.Max(0, updateVersion.Revision));
                     Console.WriteLine("updateVersion:" + updateVersion);
 
                     updateChangelog = item["changelog"].InnerText;
@@ -98,20 +98,26 @@ namespace Launcher
                 }
 
                 Version localVersion = Assembly.GetCallingAssembly().GetName().Version;
-                Console.WriteLine("localVersion:" + localVersion.ToString());
+                localVersion = new Version(Math.Max(0, localVersion.Major), Math.Max(0, localVersion.Minor), Math.Max(0, localVersion.Build), Math.Max(0, localVersion.Revision));
+                Console.WriteLine("localVersion:" + localVersion);
 
                 ////////////////////////
                 var result = localVersion.CompareTo(updateVersion);
                 if (result > 0)
                 {
+                    //MARK: shouldn't happen unless shenanigans
                     Console.WriteLine("localVersion is greater");
                 }
                 else if (result < 0)
                 {
+                    //MARK: new version available
                     Console.WriteLine("updateVersion is greater");
+
+                    //TODO: download from url in xml
                 }
                 else
                 {
+                    //MARK: local version is current
                     Console.WriteLine("versions are equal");
                 }
                 ////////////////////////
