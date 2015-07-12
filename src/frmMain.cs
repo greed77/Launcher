@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -18,6 +19,9 @@ namespace Launcher
         public static Version updateVersion= new Version("0.0.0.0");
         public static string updateChangelog = "";
         public static string updateAction = "";
+
+        public static string launcherName = "Launcher.exe";
+        public static string tempLauncherName = "_" + launcherName;
 
         public frmMain()
         {
@@ -103,22 +107,12 @@ namespace Launcher
 
                 ////////////////////////
                 var result = localVersion.CompareTo(updateVersion);
-                if (result > 0)
-                {
-                    //MARK: shouldn't happen unless shenanigans
-                    Console.WriteLine("localVersion is greater");
-                }
-                else if (result < 0)
+                if (result < 0) //updateVersion is greater
                 {
                     //MARK: new version available
-                    Console.WriteLine("updateVersion is greater");
 
                     //TODO: download from url in xml
-                }
-                else
-                {
-                    //MARK: local version is current
-                    Console.WriteLine("versions are equal");
+                    startDownload(updateUrl);
                 }
                 ////////////////////////
             }
@@ -130,5 +124,31 @@ namespace Launcher
 
             return returnVersion;
         }
+
+        /////////////////////////////
+        //http://stackoverflow.com/questions/9459225/asynchronous-file-download-with-progress-bar
+        private void startDownload(string fileUrlToDownload)
+        {
+            Console.WriteLine(fileUrlToDownload);
+            WebClient client = new WebClient();
+            client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
+            client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
+            client.DownloadFileAsync(new Uri(fileUrlToDownload), dirPath + "\\" + tempLauncherName);
+        }
+
+        void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            //double bytesIn = double.Parse(e.BytesReceived.ToString());
+            //double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
+            //double percentage = bytesIn / totalBytes * 100;
+            //label2.Text = "Downloaded " + e.BytesReceived + " of " + e.TotalBytesToReceive;
+            //progressBar1.Value = int.Parse(Math.Truncate(percentage).ToString());
+        }
+
+        void client_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        {
+            //label2.Text = "Completed";
+        }
+        /////////////////////////////
     }
 }
