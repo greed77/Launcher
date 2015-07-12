@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <items>
-	<item action="install" version="0.0.1">
-		<title>New version is available for HostsEditor</title>
-		<version>0.0.1</version>
+	<item action="install" version="0.0.2">
+		<title>New version is available for Launcher</title>
+		<version>0.0.2</version>
 		<url>https://raw.github.com/greed77/Launcher/master/Launcher.exe</url>
 		<changelog>https://raw.github.com/greed77/Launcher/master/changelog.htm</changelog>
 	</item>
