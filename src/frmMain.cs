@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -84,33 +85,42 @@ namespace Launcher
                 foreach (XmlNode item in items)
                 {
                     updateTitle = item["title"].InnerText;
-                    Console.WriteLine("title:" + updateTitle);
+                    Console.WriteLine("updateTitle:" + updateTitle);
 
                     updateVersion = new Version(item["version"].InnerText);
-                    Console.WriteLine("version:" + updateVersion);
+                    Console.WriteLine("updateVersion:" + updateVersion);
 
                     updateChangelog = item["changelog"].InnerText;
-                    Console.WriteLine("changelog:" + updateChangelog);
+                    Console.WriteLine("updateChangelog:" + updateChangelog);
 
                     updateUrl = item["url"].InnerText;
-                    Console.WriteLine("url:" + updateUrl);
-
-                    //self_update_action = xml.SelectSingleNode("/items/item/@action").Value;
-                    //Console.WriteLine("action:" + self_update_action);
+                    Console.WriteLine("updateUrl:" + updateUrl);
                 }
 
-                //Version self_current_version = Assembly.GetCallingAssembly().GetName().Version;
-                //Debug.WriteLine(self_current_version.ToString());
+                Version localVersion = Assembly.GetCallingAssembly().GetName().Version;
+                Console.WriteLine("localVersion:" + localVersion.ToString());
 
+                ////////////////////////
+                var result = localVersion.CompareTo(updateVersion);
+                if (result > 0)
+                {
+                    Console.WriteLine("localVersion is greater");
+                }
+                else if (result < 0)
+                {
+                    Console.WriteLine("updateVersion is greater");
+                }
+                else
+                {
+                    Console.WriteLine("versions are equal");
+                }
+                ////////////////////////
             }
             catch (Exception level1)
             {
                 Console.WriteLine(level1);
             }
             //////////////////////////////
-
-            var webClient = new WebClient();
-            string readHtml = webClient.DownloadString("https://raw.githubusercontent.com/greed77/Launcher/master/AutoUpdate.xml");
 
             return returnVersion;
         }
