@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -26,6 +27,12 @@ namespace Launcher
         public frmMain()
         {
             InitializeComponent();
+            Console.WriteLine("friendlyname: " + System.AppDomain.CurrentDomain.FriendlyName);
+            Console.WriteLine("processname: " + Process.GetCurrentProcess().ProcessName);
+            Console.WriteLine("executingassembly: " + System.Reflection.Assembly.GetExecutingAssembly());
+            //TODO: check current app name
+            //TODO: if it's the temp launcher, delete normal launcher and copy temp launcher to normal
+            //TODO: if it's the normal launcher and the temp launcher exists, delete temp launcher
         }
 
         private void btnCheckFolder_Click(object sender, EventArgs e)
@@ -130,19 +137,18 @@ namespace Launcher
         private void startDownload(string fileUrlToDownload)
         {
             Console.WriteLine(fileUrlToDownload);
-            WebClient client = new WebClient();
-            client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
-            client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
-            client.DownloadFileAsync(new Uri(fileUrlToDownload), dirPath + "\\" + tempLauncherName);
+            if (URLExists(fileUrlToDownload)) {
+                WebClient client = new WebClient();
+                client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
+                client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
+                client.DownloadFileAsync(new Uri(fileUrlToDownload), dirPath + "\\" + tempLauncherName);
+            }
         }
 
         void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            //double bytesIn = double.Parse(e.BytesReceived.ToString());
-            //double totalBytes = double.Parse(e.TotalBytesToReceive.ToString());
-            //double percentage = bytesIn / totalBytes * 100;
-            //label2.Text = "Downloaded " + e.BytesReceived + " of " + e.TotalBytesToReceive;
             //progressBar1.Value = int.Parse(Math.Truncate(percentage).ToString());
+            //lblOnlineVer.Text = e.ProgressPercentage + "%";
         }
 
         void client_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
@@ -150,5 +156,37 @@ namespace Launcher
             //label2.Text = "Completed";
         }
         /////////////////////////////
+
+        private bool URLExists(string url)
+        {
+            bool result = false;
+
+            WebRequest webRequest = WebRequest.Create(url);
+            webRequest.Timeout = 1200; // miliseconds
+            webRequest.Method = "HEAD";
+
+            HttpWebResponse response = null;
+
+            try
+            {
+                response = (HttpWebResponse)webRequest.GetResponse();
+                result = true;
+            }
+            catch (WebException webException)
+            {
+                Console.WriteLine(url + " doesn't exist: " + webException.Message);
+                //self.lblOnlineVer.text = "";
+            }
+            finally
+            {
+                if (response != null)
+                {
+                    response.Close();
+                }
+            }
+
+            return result;
+        }
+
     }
 }
