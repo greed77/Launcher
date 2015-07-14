@@ -12,8 +12,10 @@ namespace Launcher
 {
     public partial class frmMain : Form
     {
-        private String dirPath = Application.StartupPath;
-        private String updateUrlXml = "https://raw.githubusercontent.com/greed77/Launcher/master/AutoUpdate.xml";
+        private String launcherDirPath = Application.StartupPath;
+        private String launcherUpdateUrlXml = "https://raw.githubusercontent.com/greed77/Launcher/master/AutoUpdate.xml";
+
+        //private String appUpdateUrlXml = "https://raw.githubusercontent.com/greed77/HostsEditor/master/AutoUpdate.xml";
 
         public static string updateTitle = "";
         public static string updateUrl = "";
@@ -26,22 +28,40 @@ namespace Launcher
 
         public frmMain()
         {
+            //MARK: check current app name
+            var friendlyName = System.AppDomain.CurrentDomain.FriendlyName;
+            Console.WriteLine("friendlyname: " + friendlyName);
+
+            if (friendlyName == tempLauncherName) {
+                //MARK: if it's the temp launcher, delete normal launcher and copy temp launcher to normal
+                Console.WriteLine("running temp launcher");
+                Console.WriteLine("delete launcher");
+                File.Delete(launcherDirPath + "\\" + launcherName);
+
+                Console.WriteLine("copy temp launcher to launcher");
+                File.Copy(launcherDirPath + "\\" + tempLauncherName, launcherDirPath + "\\" + launcherName);
+            }
+            else if (File.Exists(launcherDirPath + "\\" + tempLauncherName)) {
+                //MARK: if it's the normal launcher and the temp launcher exists, delete temp launcher
+                Console.WriteLine("delete temp launcher");
+                File.Delete(launcherDirPath + "\\" + tempLauncherName);
+            }
+
             InitializeComponent();
-            Console.WriteLine("friendlyname: " + System.AppDomain.CurrentDomain.FriendlyName);
-            Console.WriteLine("processname: " + Process.GetCurrentProcess().ProcessName);
-            Console.WriteLine("executingassembly: " + System.Reflection.Assembly.GetExecutingAssembly());
-            //TODO: check current app name
-            //TODO: if it's the temp launcher, delete normal launcher and copy temp launcher to normal
-            //TODO: if it's the normal launcher and the temp launcher exists, delete temp launcher
+
+            checkForUpdates();
         }
 
         private void btnCheckFolder_Click(object sender, EventArgs e)
         {
+        }
+
+        private void checkForUpdates() {
             List<String> folders = new List<String>();
             var latestVersion = new Version("0.0");
             latestVersion = new Version(Math.Max(0, latestVersion.Major), Math.Max(0, latestVersion.Minor), Math.Max(0, latestVersion.Build), Math.Max(0, latestVersion.Revision));
 
-            foreach (string subFolderPath in Directory.GetDirectories(dirPath, "*", SearchOption.TopDirectoryOnly))
+            foreach (string subFolderPath in Directory.GetDirectories(launcherDirPath, "*", SearchOption.TopDirectoryOnly))
             {
                 Console.WriteLine(subFolderPath);
                 string fullPath = Path.GetFullPath(subFolderPath).TrimEnd(Path.DirectorySeparatorChar);
@@ -68,28 +88,18 @@ namespace Launcher
             }
             Console.WriteLine(latestVersion);
 
-            var onlineVersion = getOnlineVersion();
-
-            //TODO: if online is newer, download
-
-            //TODO: launch latest app
+            //var onlineVersion = checkOnlineVersion();
         }
 
-        private void btnCheckOnline_Click(object sender, EventArgs e)
-        {
-            getOnlineVersion();
-        }
-
-        private Version getOnlineVersion()
+        private Version checkLauncherOnlineVersion()
         {
             var returnVersion = new Version("0.0");
             returnVersion = new Version(Math.Max(0, returnVersion.Major), Math.Max(0, returnVersion.Minor), Math.Max(0, returnVersion.Build), Math.Max(0, returnVersion.Revision));
 
-            //////////////////////////////
             try
             {
                 XmlDocument xml = new XmlDocument();
-                xml.Load(updateUrlXml);
+                xml.Load(launcherUpdateUrlXml);
 
                 XmlNodeList items = xml.SelectNodes("/items/item");
                 foreach (XmlNode item in items)
@@ -112,49 +122,49 @@ namespace Launcher
                 localVersion = new Version(Math.Max(0, localVersion.Major), Math.Max(0, localVersion.Minor), Math.Max(0, localVersion.Build), Math.Max(0, localVersion.Revision));
                 Console.WriteLine("localVersion:" + localVersion);
 
-                ////////////////////////
                 var result = localVersion.CompareTo(updateVersion);
                 if (result < 0) //updateVersion is greater
                 {
                     //MARK: new version available
-
-                    //TODO: download from url in xml
-                    startDownload(updateUrl);
+                    newLauncherDownload(updateUrl);
                 }
-                ////////////////////////
             }
             catch (Exception level1)
             {
                 Console.WriteLine(level1);
             }
-            //////////////////////////////
 
             return returnVersion;
         }
 
         /////////////////////////////
         //http://stackoverflow.com/questions/9459225/asynchronous-file-download-with-progress-bar
-        private void startDownload(string fileUrlToDownload)
+        private void newLauncherDownload(string fileUrlToDownload)
         {
             Console.WriteLine(fileUrlToDownload);
             if (URLExists(fileUrlToDownload)) {
                 WebClient client = new WebClient();
-                client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(client_DownloadProgressChanged);
-                client.DownloadFileCompleted += new AsyncCompletedEventHandler(client_DownloadFileCompleted);
-                client.DownloadFileAsync(new Uri(fileUrlToDownload), dirPath + "\\" + tempLauncherName);
+                client.DownloadProgressChanged += new DownloadProgressChangedEventHandler(LauncherDownloadProgressChanged);
+                client.DownloadFileCompleted += new AsyncCompletedEventHandler(LauncherDownloadFileCompleted);
+                client.DownloadFileAsync(new Uri(fileUrlToDownload), launcherDirPath + "\\" + tempLauncherName);
             }
         }
 
-        void client_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        void LauncherDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
             //progressBar1.Value = int.Parse(Math.Truncate(percentage).ToString());
             //lblOnlineVer.Text = e.ProgressPercentage + "%";
         }
 
-        void client_DownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
+        void LauncherDownloadFileCompleted(object sender, AsyncCompletedEventArgs e)
         {
-            //label2.Text = "Completed";
+            if (MessageBox.Show("Launcher updated, press 'OK' to restart Launcher.", "Launcher Updated", MessageBoxButtons.OK) == DialogResult.OK)
+            {
+                System.Diagnostics.Process.Start(launcherDirPath + "\\" + tempLauncherName);
+                Application.Exit();
+            }
         }
+        //
         /////////////////////////////
 
         private bool URLExists(string url)
@@ -175,7 +185,6 @@ namespace Launcher
             catch (WebException webException)
             {
                 Console.WriteLine(url + " doesn't exist: " + webException.Message);
-                //self.lblOnlineVer.text = "";
             }
             finally
             {
