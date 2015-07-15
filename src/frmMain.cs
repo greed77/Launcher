@@ -15,7 +15,7 @@ namespace Launcher
         private String launcherDirPath = Application.StartupPath;
         private String launcherUpdateUrlXml = "https://raw.githubusercontent.com/greed77/Launcher/master/AutoUpdate.xml";
 
-        //private String appUpdateUrlXml = "https://raw.githubusercontent.com/greed77/HostsEditor/master/AutoUpdate.xml";
+        private String appUpdateUrlXml = "https://raw.githubusercontent.com/greed77/HostsEditor/master/AutoUpdate.xml";
 
         public static string updateTitle = "";
         public static string updateUrl = "";
@@ -49,6 +49,7 @@ namespace Launcher
 
             InitializeComponent();
 
+            checkLauncherOnlineVersion();
             checkForUpdates();
         }
 
@@ -88,7 +89,6 @@ namespace Launcher
             }
             Console.WriteLine(latestVersion);
 
-            //var onlineVersion = checkOnlineVersion();
         }
 
         private Version checkLauncherOnlineVersion()
